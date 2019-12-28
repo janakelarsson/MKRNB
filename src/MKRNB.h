@@ -27,6 +27,7 @@
 #include "NBModem.h"
 #include "NBScanner.h"
 #include "NBPIN.h"
+#include "NBContacts.h"
 
 #include "NBSSLClient.h"
 #include "NBUdp.h"
