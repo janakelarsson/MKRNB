@@ -17,6 +17,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// Timeouts from https://www.sparkfun.com/datasheets/Cellular%20Modules/AT_Commands_Reference_Guide_r0.pdf
 
 #include "NBContacts.h"
 
@@ -89,7 +90,7 @@ int NBContacts::maxNumberLength()
 int NBContacts::remove(int index) 
 {
   MODEM.sendf("AT+CPBW=%i",index);
-  if(MODEM.waitForResponse() != 1) {
+  if(MODEM.waitForResponse(20000) != 1) {
     return 0;
   }
   return 1;
@@ -97,7 +98,7 @@ int NBContacts::remove(int index)
 
 int NBContacts::update(int index, const char* number, const char* name, int type) 
 {
-  if( index < 1 or index >= _maxContacts ) {
+  if( index < 0 or index >= _maxContacts ) {
     return -1; 
   }
   if (name == nullptr) {
@@ -108,7 +109,7 @@ int NBContacts::update(int index, const char* number, const char* name, int type
   } else {
     MODEM.sendf("AT+CPBW=,\"%s\",%i,\"%s\"", number, type, name);
   }
-  if(MODEM.waitForResponse() != 1) {
+  if(MODEM.waitForResponse(20000) != 1) {
     return 0;
   }
   return 1;
@@ -160,6 +161,3 @@ int NBContacts::parseResponse(int* index, String* number, String* name, int* typ
   }
   return 0;
 }
-
-
-
