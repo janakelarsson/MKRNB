@@ -35,6 +35,8 @@ NB_SMS::NB_SMS(bool synch) :
 #endif
   _synch(synch),
   _state(SMS_STATE_IDLE),
+  _smsDataIndex(0),
+  _smsDataEndIndex(0),
   _smsTxActive(false)
 {
 }
@@ -196,21 +198,14 @@ int NB_SMS::endSMS()
 
 int NB_SMS::available()
 {
-  if (_incomingBuffer.length() != 0) {
-    int nextMessageIndex = _incomingBuffer.indexOf("\r\n+CMGL: ");
+  _smsDataIndex = _incomingBuffer.indexOf("+CMGL: ",_smsDataEndIndex);
 
-    if (nextMessageIndex != -1) {
-      _incomingBuffer.remove(0, nextMessageIndex + 2);
-    } else {
-      _incomingBuffer = "";
-    }
-  }
-
-  if (_incomingBuffer.length() == 0) {
+  if (_smsDataIndex == -1) {
     int r;
 
     if (_state == SMS_STATE_IDLE) {
       _state = SMS_STATE_LIST_MESSAGES;
+      _smsDataEndIndex = 0;
     }
 
     if (_synch) {
@@ -224,10 +219,11 @@ int NB_SMS::available()
     if (r != 1) {
       return 0;
     } 
+    _smsDataIndex = _incomingBuffer.indexOf("+CMGL: ",_smsDataEndIndex);
   }
 
-  if (_incomingBuffer.startsWith("+CMGL: ")) {
-    _smsDataIndex = _incomingBuffer.indexOf('\n') + 1;
+  if (_smsDataIndex != -1) {
+    _smsDataIndex = _incomingBuffer.indexOf('\n',_smsDataIndex) + 1;
 
     _smsDataEndIndex = _incomingBuffer.indexOf("\r\n+CMGL: ");
     if (_smsDataEndIndex == -1) {
@@ -332,6 +328,8 @@ void NB_SMS::flush()
 #ifndef NO_SMS_CHARSET
   _ptrUTF8 = "";
 #endif
+  _dataEndIndex = 0;
+
   if (smsIndexStart != -1 && smsIndexEnd != -1) {
     while (MODEM.ready() == 0);
 
