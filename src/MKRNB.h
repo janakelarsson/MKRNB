@@ -27,7 +27,7 @@
 #include "NBModem.h"
 #include "NBScanner.h"
 #include "NBPIN.h"
-
+#include "GSMFileUtils.h"
 #include "NBSSLClient.h"
 #include "NBUdp.h"
 
