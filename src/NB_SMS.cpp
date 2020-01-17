@@ -328,7 +328,7 @@ void NB_SMS::flush()
 #ifndef NO_SMS_CHARSET
   _ptrUTF8 = "";
 #endif
-  _dataEndIndex = 0;
+  _smsDataEndIndex = 0;
 
   if (smsIndexStart != -1 && smsIndexEnd != -1) {
     while (MODEM.ready() == 0);
