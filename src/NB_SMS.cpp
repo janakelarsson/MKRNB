@@ -233,6 +233,7 @@ int NB_SMS::available()
     return (_smsDataEndIndex - _smsDataIndex) + 1;
   } else {
     _incomingBuffer = "";
+    _smsDataEndIndex = 0;
   }
 
   return 0;
