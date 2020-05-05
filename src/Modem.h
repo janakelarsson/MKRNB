@@ -69,6 +69,7 @@ private:
   unsigned long _baud;
   int _resetPin;
   int _powerOnPin;
+  bool _isPowerOn;
   unsigned long _lastResponseOrUrcMillis;
 
   enum {
