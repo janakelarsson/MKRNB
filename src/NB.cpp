@@ -128,10 +128,6 @@ int NB::isAccessAlive()
 
 bool NB::shutdown()
 {
-  if (_state == NB_READY) {
-    MODEM.send("AT+CPWROFF");
-    MODEM.waitForResponse(40000);
-  }
   MODEM.end();
   _state = NB_OFF;
   return true;
@@ -367,7 +363,7 @@ int NB::ready()
       }
       break;
     }
-
+  
     case READY_STATE_SET_FULL_FUNCTIONALITY_MODE: {
       MODEM.send("AT+CFUN=1");
       _readyState = READY_STATE_WAIT_SET_FULL_FUNCTIONALITY_MODE;
@@ -387,7 +383,7 @@ int NB::ready()
 
       break;
     }
-  
+
     case READY_STATE_SET_CHARSET: {
       MODEM.send("AT+CSCS=\"GSM\"");
       _readyState = READY_STATE_WAIT_SET_CHARSET;

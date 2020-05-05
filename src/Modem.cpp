@@ -29,6 +29,7 @@ ModemClass::ModemClass(Uart& uart, unsigned long baud, int resetPin, int powerOn
   _baud(baud),
   _resetPin(resetPin),
   _powerOnPin(powerOnPin),
+  _isPowerOn(false),
   _lastResponseOrUrcMillis(0),
   _atCommandState(AT_COMMAND_IDLE),
   _ready(1),
@@ -40,17 +41,17 @@ ModemClass::ModemClass(Uart& uart, unsigned long baud, int resetPin, int powerOn
 
 int ModemClass::begin(bool restart)
 {
+  // restart should be ignored, datasheet says not to use _resetPin
+ 
   _uart->begin(_baud > 115200 ? 115200 : _baud);
 
   // power on module
-  pinMode(_powerOnPin, OUTPUT);
-  digitalWrite(_powerOnPin, HIGH);
-
-  if (_resetPin > -1 && restart) {
-    pinMode(_resetPin, OUTPUT);
-    digitalWrite(_resetPin, HIGH);
-    delay(100);
+  if (!_isPowerOn) {
+    _isPowerOn = true;
     digitalWrite(_resetPin, LOW);
+    digitalWrite(_powerOnPin, HIGH);
+    delay(150); // Datasheet says power-on pulse should be >=150ms, <=3200ms
+    digitalWrite(_powerOnPin, LOW);
   } else {
     if (!autosense()) {
       return 0;
@@ -85,11 +86,16 @@ int ModemClass::begin(bool restart)
 
 void ModemClass::end()
 {
+  if (_isPowerOn) {
+    _isPowerOn = false;
+    send("AT+CPWROFF");
+    if ( waitForResponse(40000) != 1 ) {
+      digitalWrite(_powerOnPin, HIGH);
+      delay(1500); // Datasheet says power-off pulse should be >=1500ms
+      digitalWrite(_powerOnPin, LOW);
+    }
+  }
   _uart->end();
-  digitalWrite(_resetPin, HIGH);
-
-  // power off module
-  digitalWrite(_powerOnPin, LOW);
 }
 
 void ModemClass::debug()
