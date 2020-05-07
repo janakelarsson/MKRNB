@@ -103,6 +103,7 @@ int ModemClass::shutdown()
 
 void ModemClass::end()
 {
+  _uart->end();
   // Hardware pin power off
   if (_isPowerOn) {
     _isPowerOn = false;
@@ -110,7 +111,6 @@ void ModemClass::end()
     delay(1500); // Datasheet says power-off pulse should be >=1500ms
     digitalWrite(_powerOnPin, LOW);
   }
- _uart->end();
 }
 
 void ModemClass::debug()
