@@ -124,13 +124,16 @@ int NB::isAccessAlive()
 
 bool NB::shutdown()
 {
-  MODEM.end();
-  _state = NB_OFF;
-  return true;
+  if (MODEM.shutdown() == 1) {
+    _state = NB_OFF;
+    return true;
+  }
+  return false;
 }
 
 bool NB::secureShutdown()
 {
+  MODEM.shutdown();
   MODEM.end();
   _state = NB_OFF;
   return true;

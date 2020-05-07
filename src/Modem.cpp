@@ -40,14 +40,19 @@ ModemClass::ModemClass(Uart& uart, unsigned long baud, int resetPin, int powerOn
 
 int ModemClass::begin(bool restart)
 {
-  // restart should be ignored, datasheet says not to use _resetPin
+  // datasheet warns not to use _resetPin, this may lead to an unrecoverable state
+  digitalWrite(_resetPin, LOW);
+
+  if (restart) {
+    shutdown();
+    end();
+  }
 
   _uart->begin(_baud > 115200 ? 115200 : _baud);
 
   // power on module
   if (!_isPowerOn) {
     _isPowerOn = true;
-    digitalWrite(_resetPin, LOW);
     digitalWrite(_powerOnPin, HIGH);
     delay(150); // Datasheet says power-on pulse should be >=150ms, <=3200ms
     digitalWrite(_powerOnPin, LOW);
@@ -83,22 +88,27 @@ int ModemClass::begin(bool restart)
   return 1;
 }
 
+int ModemClass::shutdown()
+{
+  if (_isPowerOn) {
+    send("AT+CPWROFF");
+    if (waitForResponse(40000) != 1) {
+      return 0;
+    }
+    _isPowerOn = false;
+  }
+  return 1;
+}
+
 void ModemClass::end()
 {
   if (_isPowerOn) {
     _isPowerOn = false;
-    send("AT+CPWROFF");
-    if ( waitForResponse(40000) != 1 ) {
-      digitalWrite(_powerOnPin, HIGH);
-      delay(1500); // Datasheet says power-off pulse should be >=1500ms
-      digitalWrite(_powerOnPin, LOW);
-    }
+    digitalWrite(_powerOnPin, HIGH);
+    delay(1500); // Datasheet says power-off pulse should be >=1500ms
+    digitalWrite(_powerOnPin, LOW);
   }
-  _uart->end();
-  digitalWrite(_resetPin, HIGH);
-
-  // power off module
-  digitalWrite(_powerOnPin, LOW);
+ _uart->end();
 }
 
 void ModemClass::debug()
