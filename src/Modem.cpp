@@ -90,6 +90,7 @@ int ModemClass::begin(bool restart)
 
 int ModemClass::shutdown()
 {
+  // AT command shutdown
   if (_isPowerOn) {
     send("AT+CPWROFF");
     if (waitForResponse(40000) != 1) {
@@ -102,6 +103,7 @@ int ModemClass::shutdown()
 
 void ModemClass::end()
 {
+  // Hardware pin power off
   if (_isPowerOn) {
     _isPowerOn = false;
     digitalWrite(_powerOnPin, HIGH);

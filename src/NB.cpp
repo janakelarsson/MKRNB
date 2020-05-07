@@ -124,7 +124,8 @@ int NB::isAccessAlive()
 
 bool NB::shutdown()
 {
-  if (MODEM.shutdown() == 1) {
+  // Attempt AT command shutdown
+  if (_state == NB_READY && MODEM.shutdown() == 1) {
     _state = NB_OFF;
     return true;
   }
@@ -133,7 +134,7 @@ bool NB::shutdown()
 
 bool NB::secureShutdown()
 {
-  MODEM.shutdown();
+  // Hardware power off
   MODEM.end();
   _state = NB_OFF;
   return true;
