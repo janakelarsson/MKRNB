@@ -45,7 +45,7 @@ public:
 
   int noop();
   int reset();
-  bool shutdown();
+  int shutdown();
 
   size_t write(uint8_t c);
   size_t write(const uint8_t*, size_t);
