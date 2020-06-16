@@ -125,7 +125,7 @@ int NB::isAccessAlive()
 bool NB::shutdown()
 {
   // Attempt AT command shutdown
-  if (_state == NB_READY && MODEM.shutdown() == 1) {
+  if (_state == NB_READY && MODEM.shutdown()) {
     _state = NB_OFF;
     return true;
   }
