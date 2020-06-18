@@ -40,9 +40,9 @@ ModemClass::ModemClass(Uart& uart, unsigned long baud, int resetPin, int powerOn
 
 void ModemClass::setVIntPin(int vIntPin)
 {
-  // Use the negative values SARA_VINT_ON and SARA_VINT_OFF
-  // for rudimentary on/off tracking
-  if (_vIntPin<0 || vIntPin>=0) {
+  // Use SARA_VINT_ON and SARA_VINT_OFF for rudimentary on/off tracking
+  if (_vIntPin==SARA_VINT_OFF || _vIntPin==SARA_VINT_ON
+    || vIntPin!=SARA_VINT_OFF || vIntPin!=SARA_VINT_ON) {
     _vIntPin=vIntPin;
   }
 }
