@@ -249,6 +249,24 @@ int ModemClass::ready()
   return _ready;
 }
 
+/** read and poll are two alternative methods of processing the data coming out of the
+ * modem chip. one should only use read if you know the modem is in DIRECT LINK mode,
+ * or if you for some other reason want to process the data coming out of the modem
+ * directly. Using read at inapropiate times can cause poll to break and get out of sync
+ * read gives direct access to the uart. It returns -1 whenever the uart is not available.
+ */
+int ModemClass::read()
+{
+  if (_uart->available()) {
+    return _uart->read();
+  } else {
+    return -1;
+  }
+}
+
+/** reads all data sent by the modem and processes any events needing triggered
+ * includes detecting OK and ERROR, as well as calling UART handlers
+ */
 void ModemClass::poll()
 {
   while (_uart->available()) {

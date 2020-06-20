@@ -466,6 +466,17 @@ unsigned long NB::getLocalTime()
 
   struct tm now;
 
+  // must be done before the response.remove(dashIndex) just below
+  time_t delta = ((response.charAt(26) - '0') * 10 + (response.charAt(27) - '0')) * (15 * 60);
+
+  if (response.charAt(25) == '-') {
+    delta = -delta;
+  } else if (response.charAt(25) != '+') {
+    delta = 0;
+  // } else {
+  //   delta = delta;
+  // }
+
   int dashIndex = response.lastIndexOf('-');
   if (dashIndex != -1) {
     response.remove(dashIndex);
@@ -475,15 +486,7 @@ unsigned long NB::getLocalTime()
     // adjust for timezone offset which is +/- in 15 minute increments
 
     time_t result = mktime(&now);
-    time_t delta = ((response.charAt(26) - '0') * 10 + (response.charAt(27) - '0')) * (15 * 60);
-
-    if (response.charAt(25) == '-') {
-      result -= delta;
-    } else if (response.charAt(25) == '+') {
-      result += delta;
-    }
-
-    return result;
+    return result + delta;
   }
 
   return 0;
