@@ -59,6 +59,8 @@ public:
   int waitForPrompt(unsigned long timeout = 500);
   int waitForResponse(unsigned long timeout = 200, String* responseDataStorage = NULL);
   int ready();
+  // use this instead of ready when you are in DIRECT_LINK mode. No processing, just the raw bytes coming out.
+  int read();
   void poll();
   void setResponseDataStorage(String* responseDataStorage);
 
