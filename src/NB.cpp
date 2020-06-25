@@ -475,7 +475,7 @@ unsigned long NB::getLocalTime()
     delta = 0;
   // } else {
   //   delta = delta;
-  // }
+  }
 
   int dashIndex = response.lastIndexOf('-');
   if (dashIndex != -1) {
