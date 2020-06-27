@@ -181,11 +181,9 @@ int NB_SMS::endSMS()
     _indexUTF8=0;
 #endif
     MODEM.write(26);
-
+    
     if (_synch) {
-      while ((r = MODEM.ready()) == 0) {
-        delay(100);
-      }
+      r = MODEM.waitForResponse(3*60*1000);
     } else {
       r = MODEM.ready();
     }
@@ -210,9 +208,7 @@ int NB_SMS::available()
     }
 
     if (_synch) {
-      while ((r = ready()) == 0) {
-        delay(100);
-      }
+      r = MODEM.waitForResponse(3*60*1000);
     } else {
       r = ready();
     }
