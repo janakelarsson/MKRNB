@@ -46,10 +46,6 @@ enum {
   READY_STATE_WAIT_SET_APN_AUTH,
   READY_STATE_SET_FULL_FUNCTIONALITY_MODE,
   READY_STATE_WAIT_SET_FULL_FUNCTIONALITY_MODE,
-#ifndef NO_SMS_CHARSET
-  READY_STATE_SET_CHARSET,
-  READY_STATE_WAIT_SET_CHARSET,
-#endif
   READY_STATE_CHECK_REGISTRATION,
   READY_STATE_WAIT_CHECK_REGISTRATION_RESPONSE,
   READY_STATE_DONE
@@ -128,13 +124,12 @@ int NB::isAccessAlive()
 
 bool NB::shutdown()
 {
-  if (_state == NB_READY) {
-    MODEM.send("AT+CPWROFF");
-    MODEM.waitForResponse(40000);
+  // Attempt AT command shutdown
+  if (_state == NB_READY && MODEM.shutdown()) {
+    _state = NB_OFF;
+    return true;
   }
-  MODEM.end();
-  _state = NB_OFF;
-  return true;
+  return false;
 }
 
 bool NB::secureShutdown()
@@ -155,8 +150,6 @@ int NB::ready()
   if (ready == 0) {
     return 0;
   }
-
-  MODEM.poll();
 
   switch (_readyState) {
     case READY_STATE_SET_ERROR_DISABLED: {
@@ -382,34 +375,13 @@ int NB::ready()
         _state = ERROR;
         ready = 2;
       } else {
-#ifndef NO_SMS_CHARSET
-        _readyState = READY_STATE_SET_CHARSET;
-        ready = 0;
-      }
-
-      break;
-    }
-  
-    case READY_STATE_SET_CHARSET: {
-      MODEM.send("AT+CSCS=\"GSM\"");
-      _readyState = READY_STATE_WAIT_SET_CHARSET;
-      ready = 0;
-      break;
-    }
-
-    case READY_STATE_WAIT_SET_CHARSET:{
-      if (ready > 1) {
-        _state = ERROR;
-        ready = 2;
-      } else {
-#endif
         _readyState = READY_STATE_CHECK_REGISTRATION;
         ready = 0;
       }
 
       break;
     }
-
+  
     case READY_STATE_CHECK_REGISTRATION: {
       MODEM.setResponseDataStorage(&_response);
       MODEM.send("AT+CEREG?");
@@ -457,7 +429,7 @@ void NB::setTimeout(unsigned long timeout)
   _timeout = timeout;
 }
 
-unsigned long NB::getTime()
+unsigned long NB::getLocalTime()
 {
   String response;
 
@@ -480,9 +452,9 @@ unsigned long NB::getTime()
     time_t delta = ((response.charAt(26) - '0') * 10 + (response.charAt(27) - '0')) * (15 * 60);
 
     if (response.charAt(25) == '-') {
-      result += delta;
-    } else if (response.charAt(25) == '+') {
       result -= delta;
+    } else if (response.charAt(25) == '+') {
+      result += delta;
     }
 
     return result;
@@ -491,7 +463,7 @@ unsigned long NB::getTime()
   return 0;
 }
 
-unsigned long NB::getLocalTime()
+unsigned long NB::getTime()
 {
   String response;
 
@@ -509,6 +481,76 @@ unsigned long NB::getLocalTime()
   }
 
   return 0;
+}
+
+bool NB::setTime(unsigned long const epoch, int const timezone)
+{
+  String hours, date;
+  const uint8_t daysInMonth [] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30 };
+  unsigned long unix_time = epoch - 946684800UL; /* Subtract seconds from 1970 to 2000 */
+
+  if (((unix_time  % 86400L) / 3600) < 10 ) {
+    hours = "0";
+  }
+
+  hours += String((unix_time  % 86400L) / 3600) + ":";
+  if ( ((unix_time  % 3600) / 60) < 10 ) {
+    hours = "0";
+  }
+
+  hours += String((unix_time  % 3600) / 60) + ":";
+   if ((unix_time % 60) < 10 ) {
+    hours += "0";
+  }
+
+  hours += String(unix_time % 60)+ "+";
+  if (timezone < 10) {
+    hours += "0";
+  }
+
+  hours += String(timezone);
+  /* Convert unix_time from seconds to days */
+  int days = unix_time / (24 * 3600);
+  int leap;
+  int year = 0;
+  while (1) {
+    leap = year % 4 == 0;
+    if (days < 365 + leap) {
+      if (year < 10) {
+        date += "0";
+      }
+    break;
+    }
+    days -= 365 + leap;
+    year++;
+  }
+
+  date += String(year) + "/";
+  int month;
+  for (month = 1; month < 12; month++) {
+    uint8_t daysPerMonth = daysInMonth[month - 1];
+    if (leap && month == 2)
+      daysPerMonth++;
+    if (days < daysPerMonth) {
+      if (month < 10) {
+        date += "0";
+      }
+      break;
+    }
+    days -= daysPerMonth;
+  }
+  date += String(month) + "/";
+
+  if ((days + 1) < 10) {
+    date += "0";
+  }
+  date +=  String(days + 1) + ",";
+
+  MODEM.send("AT+CCLK=\"" + date + hours + "\"");
+  if (MODEM.waitForResponse(100) != 1) {
+    return false;
+  }
+  return true;
 }
 
 NB_NetworkStatus_t NB::status()
