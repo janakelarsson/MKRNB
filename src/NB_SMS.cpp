@@ -239,7 +239,7 @@ int NB_SMS::endSMS()
     for (r=0; r < _indexUTF8; MODEM.write(_bufferUTF8[r++]));
     _indexUTF8=0;
     MODEM.write(26);
-    
+
     if (_synch) {
       r = MODEM.waitForResponse(3*60*1000);
     } else {
@@ -410,14 +410,13 @@ int NB_SMS::peek()
 
 void NB_SMS::flush()
 {
-  int smsIndexStart = _incomingBuffer.indexOf(' ');
   int smsIndexEnd = _incomingBuffer.indexOf(',');
 
   _ptrUTF8 = "";
-  if (smsIndexStart != -1 && smsIndexEnd != -1) {
+  if (smsIndexEnd != -1) {
     while (MODEM.ready() == 0);
 
-    MODEM.sendf("AT+CMGD=%s", _incomingBuffer.substring(smsIndexStart + 1, smsIndexEnd).c_str());
+    MODEM.sendf("AT+CMGD=%s", _incomingBuffer.substring(0, smsIndexEnd).c_str());
 
     if (_synch) {
       MODEM.waitForResponse(55000);
