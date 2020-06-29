@@ -31,4 +31,5 @@
 #include "NBSSLClient.h"
 #include "NBUdp.h"
 
+#include "GSMFileUtils.h"
 #endif
