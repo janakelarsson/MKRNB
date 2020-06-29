@@ -109,14 +109,12 @@ int NB_SMS::endSMS()
 
 int NB_SMS::available()
 {
-  if (_incomingBuffer.length() != 0) {
-    int nextMessageIndex = _incomingBuffer.indexOf("\r\n+CMGL: ");
+  int nextMessageIndex = _incomingBuffer.indexOf("+CMGL: ");
 
-    if (nextMessageIndex != -1) {
-      _incomingBuffer.remove(0, nextMessageIndex + 2);
-    } else {
-      _incomingBuffer = "";
-    }
+  if (nextMessageIndex != -1) {
+    _incomingBuffer.remove(0, nextMessageIndex);
+  } else {
+    _incomingBuffer = "";
   }
 
   if (_incomingBuffer.length() == 0) {
@@ -140,9 +138,12 @@ int NB_SMS::available()
   }
 
   if (_incomingBuffer.startsWith("+CMGL: ")) {
+
+    _incomingBuffer.remove(0, 7);
+
     _smsDataIndex = _incomingBuffer.indexOf('\n') + 1;
 
-    _smsDataEndIndex = _incomingBuffer.indexOf("\r\n+CMGL: ");
+    _smsDataEndIndex = _incomingBuffer.indexOf("\r\n+CMGL: ",_smsDataIndex);
     if (_smsDataEndIndex == -1) {
       _smsDataEndIndex = _incomingBuffer.length() - 1;
     }
