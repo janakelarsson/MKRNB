@@ -109,6 +109,7 @@ int NB_SMS::setCharset(const char* charset)
     MODEM.sendf("AT+CSCS=\"%s\"", charset);
     if (MODEM.waitForResponse() != 1) {
       return 0;
+    }
   }
   MODEM.sendf("AT+CSCS?");
   if (MODEM.waitForResponse(100,&readcharset) != 1) {
