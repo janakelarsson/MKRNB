@@ -79,10 +79,6 @@ int ModemClass::begin(bool restart)
     if (!autosense()) {
       return 0;
     }
-
-    if (!reset()) {
-      return 0;
-    }
   }
 
   if (!autosense()) {
