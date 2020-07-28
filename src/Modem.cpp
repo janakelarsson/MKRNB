@@ -75,10 +75,6 @@ int ModemClass::begin(bool restart)
     delay(150); // Datasheet says power-on pulse should be >=150ms, <=3200ms
     digitalWrite(_powerOnPin, LOW);
     setVIntPin(SARA_VINT_ON);
-  } else {
-    if (!autosense()) {
-      return 0;
-    }
   }
 
   if (!autosense()) {
@@ -103,6 +99,7 @@ int ModemClass::begin(bool restart)
   return 1;
 }
 
+
 int ModemClass::shutdown()
 {
   // AT command shutdown
@@ -126,6 +123,15 @@ void ModemClass::end()
     digitalWrite(_powerOnPin, LOW);
     setVIntPin(SARA_VINT_OFF);
   }
+}
+
+void ModemClass::hardReset()
+{
+  // Hardware pin reset, only use in EMERGENCY
+  digitalWrite(_resetPin, HIGH);
+  delay(1000); // Datasheet says nothing, so guess we wait one second
+  digitalWrite(_resetPin, LOW);
+  setVIntPin(SARA_VINT_OFF);
 }
 
 void ModemClass::debug()

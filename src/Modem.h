@@ -60,6 +60,7 @@ public:
   int noop();
   int reset();
   int shutdown();
+  void hardReset(); // Hardware pin reset, only use in EMERGENCY
   int isPowerOn();
   void setVIntPin(int vIntPin);
 
